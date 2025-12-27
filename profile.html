@@ -160,6 +160,30 @@
                 <input type="email" id="email" disabled style="background: #e9ecef;">
                 <small>Email cannot be changed</small>
             </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="phone" placeholder="Enter phone number">
+            </div>
+
+            <div class="form-group">
+                <label>Address</label>
+                <textarea id="address" rows="3"
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"
+                    placeholder="Enter your delivery address"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Pincode</label>
+                    <input type="text" id="pincode" placeholder="e.g. 110001">
+                </div>
+                <div class="form-group">
+                    <label>Landmark</label>
+                    <input type="text" id="landmark" placeholder="e.g. Near Metro Station">
+                </div>
+            </div>
+
             <button type="submit" class="save-btn">Save Changes</button>
             <p class="success-msg" id="profile-msg">Profile updated successfully!</p>
         </form>
@@ -209,8 +233,17 @@
 
         auth.onAuthStateChanged((user) => {
             if (user) {
+                // Load Basic Auth Info
                 document.getElementById('display-name').value = user.displayName || '';
                 document.getElementById('email').value = user.email || '';
+
+                // Load Extended Info from LocalStorage
+                const savedDetails = JSON.parse(localStorage.getItem(`user_details_${user.uid}`) || '{}');
+                document.getElementById('phone').value = savedDetails.phone || '';
+                document.getElementById('address').value = savedDetails.address || '';
+                document.getElementById('pincode').value = savedDetails.pincode || '';
+                document.getElementById('landmark').value = savedDetails.landmark || '';
+
             } else {
                 window.location.href = 'auth.html';
             }
@@ -219,11 +252,22 @@
         async function updateProfile(e) {
             e.preventDefault();
             const user = auth.currentUser;
-            const newName = document.getElementById('display-name').value;
 
             if (user) {
+                const newName = document.getElementById('display-name').value;
+                const phone = document.getElementById('phone').value;
+                const address = document.getElementById('address').value;
+                const pincode = document.getElementById('pincode').value;
+                const landmark = document.getElementById('landmark').value;
+
                 try {
+                    // Update Auth Profile
                     await user.updateProfile({ displayName: newName });
+
+                    // Save Extended Info to LocalStorage
+                    const details = { phone, address, pincode, landmark };
+                    localStorage.setItem(`user_details_${user.uid}`, JSON.stringify(details));
+
                     const msg = document.getElementById('profile-msg');
                     msg.style.display = 'block';
                     setTimeout(() => msg.style.display = 'none', 3000);
