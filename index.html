@@ -731,21 +731,62 @@
 
         function getUniAIResponse(userMsg) {
             const msg = userMsg.toLowerCase();
+            const user = auth.currentUser;
+            const userName = user ? user.displayName.split(' ')[0] : 'friend';
 
+            // 0. Personalization & Small Talk
             if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
-                return "Hello! Welcome to Unicorn store 🦄✨. Looking for anything special?";
+                return `Hi ${userName}! 👋 Welcome back to Unicorn store 🦄✨. How can I add some magic to your day?`;
             }
-            if (msg.includes('shipping') || msg.includes('delivery')) {
+            if (msg.includes('thank') || msg.includes('thanks')) {
+                return `You're very welcome, ${userName}! ✨ Let me know if you need anything else.`;
+            }
+            if (msg.includes('bye') || msg.includes('goodbye')) {
+                return `Goodbye, ${userName}! Have a magical day! 🦄✨`;
+            }
+            if (msg.includes('cool') || msg.includes('awesome') || msg.includes('wow')) {
+                return "I know right? Magic is in the air here! ✨🦄";
+            }
+
+            // 1. Product Search
+            const foundProduct = products.find(p => msg.includes(p.name.toLowerCase()) || msg.includes(p.name.toLowerCase().split(' ').pop()) || (p.description && msg.includes(p.description.toLowerCase().split(' ')[0])));
+            if (foundProduct) {
+                return `I found the ${foundProduct.name}! ✨ It's currently $${foundProduct.price}. ${foundProduct.description}. Should I add it to your cart? 🛒`;
+            }
+            if (msg.includes('headphone') || msg.includes('audio')) return "Check out our Premium Wireless Headphones ($299.99) or Wireless Earbuds ($149.99)! 🎧";
+            if (msg.includes('watch') || msg.includes('wearable')) return "Our Smart Watch Pro is a customer favorite at $399.99! ⌚";
+            if (msg.includes('laptop') || msg.includes('stand')) return "Improve your posture with our Laptop Stand for just $49.99. 💻";
+            if (msg.includes('keyboard')) return "Type in style with our Mechanical Keyboard ($129.99). ⌨️";
+
+            // 2. Order Tracking (Mock Logic)
+            const orderMatch = msg.match(/order\s*#?\s*(\d+)/) || msg.match(/(\d{5})/);
+            if (orderMatch) {
+                const orderId = orderMatch[1];
+                if (orderId === '12345') return `Order #12345 (Headphones) was Delivered on Dec 20, 2024. Hope you're enjoying them, ${userName}! 🎵`;
+                if (orderId === '12348') return `Order #12348 (USB-C Hub x2) is currently Processing. It should arrive by Dec 30, 2024. 🚚`;
+                return `I can't find details for Order #${orderId}. Please double-check the number in your Profile > Orders page.`;
+            }
+
+            // 3. Delivery / Shipping Estimates
+            if (msg.includes('delivery') || msg.includes('arrive') || msg.includes('when')) {
+                const today = new Date();
+                const arrivalDate = new Date(today);
+                arrivalDate.setDate(today.getDate() + 4);
+                const options = { weekday: 'long', month: 'short', day: 'numeric' };
+                return `Standard shipping usually takes 3-5 business days. If you order today, expect it around ${arrivalDate.toLocaleDateString('en-US', options)}! 📦`;
+            }
+
+            if (msg.includes('shipping')) {
                 return "We offer free shipping on orders over $50! 🚚 Standard delivery takes 3-5 business days.";
             }
             if (msg.includes('refund') || msg.includes('return')) {
-                return "You can return items within 30 days of purchase if they are in original condition. Check our policy page for more info! 📋";
+                return "Returns are accepted within 30 days. Just keep the item in original condition! 📋";
             }
-            if (msg.includes('discount') || msg.includes('code') || msg.includes('coupon')) {
+            if (msg.includes('discount') || msg.includes('price') || msg.includes('sale')) {
                 return "Check out our Featured Products for amazing deals up to 30% OFF! 🎉";
             }
             if (msg.includes('order') || msg.includes('track')) {
-                return "You can view your order history in the Profile section. Just click your name in the top right! 👤";
+                return `You can view your full order history in your Profile. Just click your name (${userName}) in the top right to see them! 👤`;
             }
             if (msg.includes('unicorn')) {
                 return "That's me! 🦄 I'm here to add a little magic to your shopping experience.";
@@ -754,7 +795,7 @@
             // Default responses
             const defaults = [
                 "I'm still learning! Could you rephrase that? 🤔",
-                "That sounds interesting! Tell me more or ask about our products.",
+                `That sounds interesting, ${userName}! Tell me more or ask about our products.`,
                 "I'm Uni AI 🦄, your virtual assistant. Ask me about shipping, returns, or products!",
                 "Sorry, I didn't quite catch that. How can I assist you with your shopping?"
             ];
