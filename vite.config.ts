@@ -22,6 +22,7 @@ export default defineConfig({
         cart2: path.resolve(__dirname, 'cart2.html'),
         product: path.resolve(__dirname, 'product.html'),
         productDetail: path.resolve(__dirname, 'product-detail.html'),
+        profile: path.resolve(__dirname, 'profile.html'),
       },
     },
   },
