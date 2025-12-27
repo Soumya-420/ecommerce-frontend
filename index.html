@@ -502,6 +502,11 @@
                 </li>
                 <li id="login-link"><a href="auth.html">Login</a></li>
                 <li id="cart-link"><a href="cart.html">Cart</a></li>
+                <li>
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Day/Night Mode">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                </li>
             </ul>
         </nav>
     </header>
@@ -586,22 +591,90 @@
         }
 
         const products = [
-            { id: 1, name: "Premium Wireless Headphones", price: 299.99, originalPrice: 399.99, description: "High-quality sound with noise cancellation", image: "./images/headphone.webp" },
-            { id: 2, name: "Smart Watch Pro", price: 399.99, originalPrice: 499.99, description: "Track your fitness and stay connected", image: "./images/smartwatch.webp" },
-            { id: 3, name: "Wireless Earbuds", price: 149.99, originalPrice: 199.99, description: "Compact design with powerful sound", image: "./images/earbuds.webp" },
-            { id: 4, name: "Laptop Stand", price: 49.99, originalPrice: 69.99, description: "Ergonomic design for better posture", image: "./images/laptop-stand.webp" },
-            { id: 5, name: "USB-C Hub", price: 79.99, originalPrice: 99.99, description: "Connect all your devices with ease", image: "./images/usb-hub.webp" },
-            { id: 6, name: "Mechanical Keyboard", price: 129.99, originalPrice: 169.99, description: "Premium typing experience", image: "./images/keyboard.webp" }
+            {
+                id: 1,
+                name: "Premium Wireless Headphones",
+                price: 299.99,
+                originalPrice: 399.99,
+                description: "High-quality sound with noise cancellation",
+                image: "./images/headphone.webp",
+                colors: [
+                    { name: "Black", hex: "#000", image: "./images/headphone.webp" },
+                    { name: "White", hex: "#fff", image: "./images/headphone-white.png" }
+                ]
+            },
+            {
+                id: 2,
+                name: "Smart Watch Pro",
+                price: 399.99,
+                originalPrice: 499.99,
+                description: "Track your fitness and stay connected",
+                image: "./images/smartwatch.webp",
+                colors: [
+                    { name: "Black", hex: "#000", image: "./images/smartwatch.webp" },
+                    { name: "Pink", hex: "#ffc0cb", image: "./images/smartwatch-pink.png" }
+                ]
+            },
+            {
+                id: 3,
+                name: "Wireless Earbuds",
+                price: 149.99,
+                originalPrice: 199.99,
+                description: "Compact design with powerful sound",
+                image: "./images/earbuds.webp",
+                colors: [
+                    { name: "Black", hex: "#000", image: "./images/earbuds.webp" },
+                    { name: "Blue", hex: "#3498db", image: "./images/earbuds-blue.png" },
+                    { name: "Grey", hex: "#808080", image: "./images/earbuds.webp" }, // Mock
+                    { name: "White", hex: "#fff", image: "./images/earbuds.webp" } // Mock
+                ]
+            },
+            {
+                id: 4,
+                name: "Laptop Stand",
+                price: 49.99,
+                originalPrice: 69.99,
+                description: "Ergonomic design for better posture",
+                image: "./images/laptop-stand.webp",
+                colors: [{ name: "Silver", hex: "#c0c0c0", image: "./images/laptop-stand.webp" }]
+            },
+            {
+                id: 5,
+                name: "USB-C Hub",
+                price: 79.99,
+                originalPrice: 99.99,
+                description: "Connect all your devices with ease",
+                image: "./images/usb-hub.webp",
+                colors: [{ name: "Grey", hex: "#808080", image: "./images/usb-hub.webp" }]
+            },
+            {
+                id: 6,
+                name: "Mechanical Keyboard",
+                price: 129.99,
+                originalPrice: 169.99,
+                description: "Premium typing experience",
+                image: "./images/keyboard.webp",
+                colors: [{ name: "Black", hex: "#000", image: "./images/keyboard.webp" }]
+            }
         ];
 
         const grid = document.getElementById("products-grid");
 
+        // State to track selected colors for each product
+        let selectedColors = {};
+
         function renderProducts() {
             grid.innerHTML = products.map(p => {
                 const discount = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+                // Default to first color if not set
+                if (!selectedColors[p.id]) {
+                    selectedColors[p.id] = p.colors[0];
+                }
+                const current = selectedColors[p.id];
+
                 return `
-            <div class="product-card">
-                <img src="${p.image}" alt="${p.name}" class="product-image" loading="lazy">
+            <div class="product-card" id="product-${p.id}">
+                <img src="${current.image}" alt="${p.name}" class="product-image" loading="lazy" id="img-${p.id}">
                 <div class="product-info">
                     <h3 class="product-name">${p.name}</h3>
                     <div class="product-price">
@@ -609,6 +682,17 @@
                         $${p.price}
                         <span class="discount-badge">${discount}% OFF</span>
                     </div>
+                    
+                    <div class="color-options">
+                        ${p.colors.map(c => `
+                            <button class="color-btn ${c.name === current.name ? 'selected' : ''}" 
+                                    style="background-color: ${c.hex};" 
+                                    onclick="selectColor(${p.id}, '${c.name}')"
+                                    title="${c.name}">
+                            </button>
+                        `).join('')}
+                    </div>
+
                     <p class="product-description">${p.description}</p>
                     <button class="add-to-cart-btn" onclick="addToCart(${p.id})">Add to Cart</button>
                 </div>
@@ -616,16 +700,40 @@
         `}).join("");
         }
 
+        function selectColor(productId, colorName) {
+            const product = products.find(p => p.id === productId);
+            const color = product.colors.find(c => c.name === colorName);
+            if (color) {
+                selectedColors[productId] = color;
+                // create a temporary simple re-render or just direct DOM manipulation for speed
+                renderProducts(); // Re-render to update UI state
+            }
+        }
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Init Theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
 
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
 
+            const selectedColor = selectedColors[productId] || product.colors[0];
+
             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const existingItemIndex = cart.findIndex(item =>
                 (item.productId === productId || item.id === productId) &&
-                item.color === 'Default' &&
-                item.size === 'Default'
+                item.color === selectedColor.name // Match color
             );
 
             if (existingItemIndex > -1) {
@@ -635,9 +743,9 @@
                     productId: product.id,
                     name: product.name,
                     price: product.price,
-                    image: product.image,
+                    image: selectedColor.image, // Use colored image
                     quantity: 1,
-                    color: 'Default',
+                    color: selectedColor.name,
                     size: 'Default'
                 });
             }
@@ -645,7 +753,7 @@
 
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
-            alert(`${product.name} added to cart!`);
+            alert(`${product.name} (${selectedColor.name}) added to cart!`);
         }
 
         function updateCartCount() {
