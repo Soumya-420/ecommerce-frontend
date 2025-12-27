@@ -729,6 +729,9 @@
             chatMessages.scrollTop = chatMessages.scrollHeight; // Auto scroll
         }
 
+        // AI Context State
+        let lastDiscussedProductId = null;
+
         function getUniAIResponse(userMsg) {
             const msg = userMsg.toLowerCase();
             const user = auth.currentUser;
@@ -736,6 +739,7 @@
 
             // 0. Personalization & Small Talk
             if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+                lastDiscussedProductId = null; // Reset context
                 return `Hi ${userName}! 👋 Welcome back to Unicorn store 🦄✨. How can I add some magic to your day?`;
             }
             if (msg.includes('thank') || msg.includes('thanks')) {
@@ -748,17 +752,62 @@
                 return "I know right? Magic is in the air here! ✨🦄";
             }
 
-            // 1. Product Search
+            // 1. Cart & Checkout Actions
+            // Check for "Add to Cart" intent (explicit or implied by "yes" in context)
+            const isAddToCart = msg.includes('add') && (msg.includes('cart') || msg.includes('bag')) ||
+                msg.includes('buy it') ||
+                (lastDiscussedProductId && (msg === 'yes' || msg === 'sure' || msg === 'please' || msg === 'ok'));
+
+            if (isAddToCart) {
+                if (!user) {
+                    return "Please login for adding items to cart 🔒. You can login using the link in the menu!";
+                }
+
+                if (lastDiscussedProductId) {
+                    addToCart(lastDiscussedProductId);
+                    const product = products.find(p => p.id === lastDiscussedProductId);
+                    lastDiscussedProductId = null; // Clear context after acting
+                    return `Added ${product.name} to your cart! 🛒 Anything else?`;
+                } else {
+                    return "I'm not sure which product you want to add. Ask me about a product first! 🛍️";
+                }
+            }
+
+            // Check for "Checkout" intent
+            if (msg.includes('checkout') || msg.includes('place order') || msg.includes('buy all')) {
+                if (!user) {
+                    return "Please login to proceed to checkout! 🔒";
+                }
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                if (cart.length === 0) {
+                    return "Your cart is empty! Add some magical items first. ✨";
+                }
+
+                // Simulate Checkout
+                localStorage.removeItem('cart');
+                updateCartCount();
+                // Ideally refresh specific parts, but here we just update count. 
+                // In a real app, we'd redirect or show a modal.
+                setTimeout(() => {
+                    alert("Order placed successfully! Order #12349"); // Simulation
+                    window.location.reload(); // To refresh cart view if on cart page
+                }, 1000);
+
+                return `Processing your order... Done! 🎉 Order #12349 has been placed. Thank you ${userName}!`;
+            }
+
+            // 2. Product Search
             const foundProduct = products.find(p => msg.includes(p.name.toLowerCase()) || msg.includes(p.name.toLowerCase().split(' ').pop()) || (p.description && msg.includes(p.description.toLowerCase().split(' ')[0])));
             if (foundProduct) {
+                lastDiscussedProductId = foundProduct.id; // Set Context
                 return `I found the ${foundProduct.name}! ✨ It's currently $${foundProduct.price}. ${foundProduct.description}. Should I add it to your cart? 🛒`;
             }
-            if (msg.includes('headphone') || msg.includes('audio')) return "Check out our Premium Wireless Headphones ($299.99) or Wireless Earbuds ($149.99)! 🎧";
-            if (msg.includes('watch') || msg.includes('wearable')) return "Our Smart Watch Pro is a customer favorite at $399.99! ⌚";
-            if (msg.includes('laptop') || msg.includes('stand')) return "Improve your posture with our Laptop Stand for just $49.99. 💻";
-            if (msg.includes('keyboard')) return "Type in style with our Mechanical Keyboard ($129.99). ⌨️";
 
-            // 2. Order Tracking (Mock Logic)
+            // Clear context if shifting topics
+            if (msg.includes('headphone') || msg.includes('audio')) { lastDiscussedProductId = null; return "Check out our Premium Wireless Headphones ($299.99) or Wireless Earbuds ($149.99)! 🎧"; }
+            if (msg.includes('watch') || msg.includes('wearable')) { lastDiscussedProductId = null; return "Our Smart Watch Pro is a customer favorite at $399.99! ⌚"; }
+
+            // 3. Order Tracking (Mock Logic)
             const orderMatch = msg.match(/order\s*#?\s*(\d+)/) || msg.match(/(\d{5})/);
             if (orderMatch) {
                 const orderId = orderMatch[1];
@@ -767,7 +816,7 @@
                 return `I can't find details for Order #${orderId}. Please double-check the number in your Profile > Orders page.`;
             }
 
-            // 3. Delivery / Shipping Estimates
+            // 4. Delivery / Shipping Estimates
             if (msg.includes('delivery') || msg.includes('arrive') || msg.includes('when')) {
                 const today = new Date();
                 const arrivalDate = new Date(today);
