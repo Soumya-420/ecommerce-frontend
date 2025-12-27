@@ -288,6 +288,140 @@
             border-left: 1px solid rgba(255, 255, 255, 0.2);
             animation: fadeIn 1s ease-in;
         }
+
+        /* Uni AI Chatbot Styles */
+        #chatbot-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            transition: transform 0.3s ease;
+        }
+
+        #chatbot-btn:hover {
+            transform: scale(1.1);
+        }
+
+        #chatbot-btn span {
+            font-size: 30px;
+        }
+
+        #chatbot-window {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-chat {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .message.bot {
+            background: white;
+            border-bottom-left-radius: 2px;
+            align-self: flex-start;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 2px;
+            align-self: flex-end;
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .send-btn {
+            background: #764ba2;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            background: #667eea;
+        }
     </style>
 </head>
 
@@ -527,6 +661,106 @@
 
     </script>
 
+    <!-- Uni AI Chatbot UI -->
+    <div id="chatbot-btn" onclick="toggleChatbot()">
+        <span>🦄</span>
+    </div>
+
+    <div id="chatbot-window">
+        <div class="chat-header">
+            <h3><span>🦄</span> Uni AI</h3>
+            <button class="close-chat" onclick="toggleChatbot()">×</button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot">
+                Hi! I'm Uni AI 🦄. How can I help you today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..."
+                onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChatbot() {
+            const chatWindow = document.getElementById('chatbot-window');
+            if (chatWindow.style.display === 'flex') {
+                chatWindow.style.display = 'none';
+            } else {
+                chatWindow.style.display = 'flex';
+                // Focus input when opening
+                setTimeout(() => document.getElementById('chat-input').focus(), 100);
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add User Message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Simulate AI Delay and Response
+            const chatMessages = document.getElementById('chat-messages');
+
+            // Show typing indicator (optional) or just wait
+            setTimeout(() => {
+                const response = getUniAIResponse(message);
+                addMessage(response, 'bot');
+            }, 600 + Math.random() * 500); // Random delay 600-1100ms
+        }
+
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto scroll
+        }
+
+        function getUniAIResponse(userMsg) {
+            const msg = userMsg.toLowerCase();
+
+            if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+                return "Hello! Welcome to Unicorn store 🦄✨. Looking for anything special?";
+            }
+            if (msg.includes('shipping') || msg.includes('delivery')) {
+                return "We offer free shipping on orders over $50! 🚚 Standard delivery takes 3-5 business days.";
+            }
+            if (msg.includes('refund') || msg.includes('return')) {
+                return "You can return items within 30 days of purchase if they are in original condition. Check our policy page for more info! 📋";
+            }
+            if (msg.includes('discount') || msg.includes('code') || msg.includes('coupon')) {
+                return "Check out our Featured Products for amazing deals up to 30% OFF! 🎉";
+            }
+            if (msg.includes('order') || msg.includes('track')) {
+                return "You can view your order history in the Profile section. Just click your name in the top right! 👤";
+            }
+            if (msg.includes('unicorn')) {
+                return "That's me! 🦄 I'm here to add a little magic to your shopping experience.";
+            }
+
+            // Default responses
+            const defaults = [
+                "I'm still learning! Could you rephrase that? 🤔",
+                "That sounds interesting! Tell me more or ask about our products.",
+                "I'm Uni AI 🦄, your virtual assistant. Ask me about shipping, returns, or products!",
+                "Sorry, I didn't quite catch that. How can I assist you with your shopping?"
+            ];
+            return defaults[Math.floor(Math.random() * defaults.length)];
+        }
+    </script>
 </body>
 
 </html>
