@@ -139,24 +139,70 @@
 
         .product-card {
             background: #fff;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, .1)
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            /* Softer initial shadow */
+            width: 280px;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
 
         .product-image {
             width: 100%;
             height: 260px;
-            object-fit: cover
+            object-fit: cover;
+            /* Use contain if product images get cut off, keeping cover for premium look */
+            /* object-fit: contain; padding: 20px; box-sizing: border-box; background: #f9f9f9; */
+            transition: transform 0.5s ease;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05);
         }
 
         .product-info {
-            padding: 1.5rem
+            padding: 1.5rem;
+            position: relative;
+            background: #fff;
+            /* Ensure solid background over image if needed */
         }
 
         .product-name {
-            font-size: 1.2rem;
-            margin-bottom: .5rem
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #3498db, #667eea);
+            color: #fff;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.2s;
+            opacity: 0.9;
+        }
+
+        .add-to-cart-btn:hover {
+            opacity: 1;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
         }
 
         .product-price {
